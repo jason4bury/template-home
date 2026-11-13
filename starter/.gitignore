@@ -1,0 +1,29 @@
+# Builds live in ..\Builds\, outside the repo. Safety net in case one lands here.
+Builds/
+*.exe
+*.exe.old
+
+# Settings and data live outside the repo (%APPDATA%\<App Name>, or <project>\Data for
+# private tools). These catch a stray copy if one is ever left in here.
+Data/
+
+# Local config and secrets (config.example.json shows the shape and IS committed)
+config.local.json
+.env
+secrets*.json
+*.key
+*.pfx
+
+# Logs, temp files and backups (Build-Exe.log, editor backups)
+*.log
+*.tmp
+*.bak
+
+# Windows clutter
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Editor
+.vscode/
+*.swp

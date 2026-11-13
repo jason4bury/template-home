@@ -1,0 +1,19 @@
+# The template has no builds or data, but keep stray ones out
+Builds/
+*.exe
+Data/
+config.local.json
+.env
+
+# Logs and temp files
+*.log
+*.tmp
+*.bak
+
+# Windows clutter
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+*.swp

@@ -1,0 +1,5 @@
+{
+  "_comment": "Copy this file to config.local.json (gitignored) and put real values there. Never commit real keys, NAS paths or URLs.",
+  "NasPath": "\\\\NAS\\share\\folder",
+  "ApiKey": "your-api-key-here"
+}

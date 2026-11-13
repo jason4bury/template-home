@@ -1,0 +1,17 @@
+{
+  "AppName": "{{APP_NAME}}",
+  "EntryScript": "src\\{{APP_SLUG}}.ps1",
+  "Icon": "assets\\{{APP_SLUG}}.ico",
+  "Side": "Home",
+  "Description": "{{DESCRIPTION}}",
+  "EmbedAssets": ["assets\\{{APP_SLUG}}.ico", "assets\\{{APP_SLUG}}.png"],
+  "IncludeFiles": [],
+  "Ps2exe": {
+    "STA": true,
+    "NoConsole": true,
+    "NoOutput": true,
+    "NoError": true,
+    "NoConfigFile": true,
+    "RequireAdmin": false
+  }
+}
