@@ -26,7 +26,8 @@ exit /b %BUILD_RESULT%
 #   5. zips that folder as ..\Builds\<App-Name>-v<version>.zip for the GitHub release,
 #   6. refreshes ..\Builds\<AppName>.lnk, pointing at the new version, for the
 #      Home Launcher (launcher.json's Target) - a shortcut needs a full path, so
-#      it is made here on this PC and never shipped,
+#      it is made here on this PC and never shipped. The shortcut maker runs the
+#      way the release's start .cmd runs it, so this also tests that .cmd,
 #   7. scans the folder and zip with ESET's command-line scanner (ecls.exe) if
 #      it's installed, without cleaning anything.
 #
@@ -132,7 +133,12 @@ try {
     if ($cfg.Release.Shortcut) {
         $maker = Join-Path $outDir $cfg.Release.Shortcut
         $lnk   = Join-Path $buildsDir "$appName.lnk"
-        & $maker -ScriptPath (Join-Path $outDir (Split-Path -Leaf $script)) -ShortcutPath $lnk | Write-Host
+        # Run it the way the release's start .cmd does (powershell.exe -File, no -ScriptPath), so the
+        # build fails if the shortcut maker can't find the script by itself (PS 5.1 leaves $PSScriptRoot
+        # empty in param() defaults under -File).
+        $ps = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+        & $ps -NoProfile -ExecutionPolicy Bypass -File $maker -ShortcutPath $lnk | Write-Host
+        if ($LASTEXITCODE -ne 0) { throw "$($cfg.Release.Shortcut) failed (exit code $LASTEXITCODE)." }
         # The shortcut maker unblocks the folder; nothing else changes in it.
     }
 
