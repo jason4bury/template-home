@@ -48,7 +48,7 @@ Home tools used to ship as PS2EXE exes, and antivirus programs (ESET among them)
 
 ### Build a release
 
-Double-click **Build.cmd** in the repo folder. It reads `build.json`, checks every script for syntax errors and that `$script:AppVersion` matches the newest `CHANGELOG.md` entry, runs PSScriptAnalyzer if it's installed, copies the release files into `..\Builds\{{APP_NAME}} v<version>\`, zips that folder for the GitHub release, refreshes `..\Builds\{{APP_NAME}}.lnk` (what the Home Launcher starts) and scans the result with ESET's command-line scanner if it's installed.
+Double-click **Build.cmd** in the repo folder. It reads `build.json`, checks every script for syntax errors and that `$script:AppVersion` matches the newest `CHANGELOG.md` entry (if the version lives in a file of its own, add `"VersionFile": "src\\<file>.ps1"` to `build.json`; that file can call it `$script:<Name>Version`), runs PSScriptAnalyzer if it's installed, copies the release files into `..\Builds\{{APP_NAME}} v<version>\`, zips that folder for the GitHub release, refreshes `..\Builds\{{APP_NAME}}.lnk` (what the Home Launcher starts) and scans the result with ESET's command-line scanner if it's installed.
 
 ## 🚀 Usage
 

@@ -6,7 +6,7 @@
 
 The starter for every new Home tool: house-style README, changelog, licence, build and launcher files, ready to fill in.
 
-![Version](https://img.shields.io/badge/version-v1.01-blue) ![Platform](https://img.shields.io/badge/platform-Windows-0078D6) ![PowerShell](https://img.shields.io/badge/PowerShell-5.1-5391FE) ![Licence](https://img.shields.io/badge/licence-MIT-green) ![Last commit](https://img.shields.io/github/last-commit/jason4bury/template-home)
+![Version](https://img.shields.io/badge/version-v1.02-blue) ![Platform](https://img.shields.io/badge/platform-Windows-0078D6) ![PowerShell](https://img.shields.io/badge/PowerShell-5.1-5391FE) ![Licence](https://img.shields.io/badge/licence-MIT-green) ![Last commit](https://img.shields.io/github/last-commit/jason4bury/template-home)
 
 ## ✨ Features
 
@@ -17,7 +17,7 @@ One command turns this template into a new tool's project folder, laid out and w
 - **CHANGELOG.md** in Keep a Changelog format, starting at `[1.00]` with today's date.
 - **MIT LICENSE**, `Copyright (c) <year> Jason Rhodes`.
 - **.gitignore and .gitattributes**: exes, shortcuts, `Builds\`, `Data\`, `config.local.json`, `.env`, logs; CRLF for `.ps1`, `.psd1` and `.cmd`. `config.example.json` shows the shape of the gitignored config.
-- **No exe.** PS2EXE exes kept being flagged by antivirus as false positives, so a Home tool ships as its script. **build.json** lists the release files, and **Build.cmd** checks the scripts' syntax and the version against the CHANGELOG, runs PSScriptAnalyzer (with the repo's `PSScriptAnalyzerSettings.psd1`), copies the release into `..\Builds\<App Name> v1.00\`, zips it for GitHub, refreshes `..\Builds\<App Name>.lnk` for the Home Launcher and scans it all with ESET's command-line scanner if it's there.
+- **No exe.** PS2EXE exes kept being flagged by antivirus as false positives, so a Home tool ships as its script. **build.json** lists the release files, and **Build.cmd** checks the scripts' syntax and the version against the CHANGELOG (read from `$script:AppVersion` in the main script, or from build.json's optional `VersionFile`), runs PSScriptAnalyzer (with the repo's `PSScriptAnalyzerSettings.psd1`), copies the release into `..\Builds\<App Name> v1.00\`, zips it for GitHub, refreshes `..\Builds\<App Name>.lnk` for the Home Launcher and scans it all with ESET's command-line scanner if it's there.
 - **`<App Name>.cmd` and `New-<Name>Shortcut.ps1`** in every release: double-clicking the .cmd makes a shortcut beside it and in the Start menu that starts the tool with no console window, its own icon and its own taskbar button.
 - **launcher.json** with the tool's category, so the Home Launcher files it in the right group.
 - **Starter script** `src\<Name>.ps1`: version and name in one place, settings in `%APPDATA%\<App Name>` (or `<project>\Data` for private tools), assets that work from the repo and from a release folder, its own taskbar ID, a log, and the **About box** (logo, name, version, About-box description, data folder, repo link, copyright and MIT licence). The window is a placeholder: house style sets what the About box says, never how the app looks.
@@ -66,7 +66,7 @@ That makes `E:\Created\Home\Media-Hub\Source\` (a new git repo, nothing committe
 
 ### Then
 
-1. Write the tool in `src\<Name>.ps1`. Keep `$script:AppVersion` in step with the newest CHANGELOG entry.
+1. Write the tool in `src\<Name>.ps1`. Keep `$script:AppVersion` in step with the newest CHANGELOG entry. If the tool keeps its version in a separate file, add `"VersionFile": "src\\<file>.ps1"` to `build.json`; that file can name it `$script:<Name>Version`.
 2. Replace the placeholder icon, fill in the README sections (leave out any that don't apply; never reorder them) and add a screenshot.
 3. Run the pre-upload review: code, GUI and graphics, improvements.
 4. Double-click **Build.cmd**.

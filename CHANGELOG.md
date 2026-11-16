@@ -6,6 +6,20 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.02] - 2026-11-16
+
+### Added
+- `starter\Build.cmd`: optional `VersionFile` in `build.json`, for a tool that keeps its version
+  in a file of its own. Build.cmd then reads `$script:<Name>Version` (e.g. `$script:ToolkitVersion`)
+  from that file. Same as After Hours Movie Toolkit v1.02 and Stash Toolkit v1.02. Tools without
+  `VersionFile` build exactly as before.
+
+### Fixed
+- `starter\src\New-AppShortcut.ps1`: the default script path is worked out in the body, because
+  PowerShell 5.1 leaves `$PSScriptRoot` empty in `param()` defaults under `-File`.
+- `starter\Build.cmd` runs the shortcut maker with `powershell.exe -File`, the way the release's
+  .cmd does, so a build fails if that .cmd would.
+
 ## [1.01] - 2026-11-15
 No more exes: PS2EXE builds kept being flagged by antivirus (ESET "Generik" trojans) by mistake.
 

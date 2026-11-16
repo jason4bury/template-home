@@ -18,9 +18,11 @@ exit /b %BUILD_RESULT%
 # antivirus as false positives, so Home tools no longer use them.)
 #
 # Double-click this file (no admin rights needed). It:
-#   1. reads build.json (AppName, EntryScript, Release.Files, Release.Shortcut),
+#   1. reads build.json (AppName, EntryScript, Release.Files, Release.Shortcut,
+#      and VersionFile if the tool has one),
 #   2. checks every script in src\ has no syntax errors and that
-#      $script:AppVersion matches the newest CHANGELOG entry,
+#      $script:AppVersion in EntryScript (or $script:<Name>Version in
+#      build.json's VersionFile) matches the newest CHANGELOG entry,
 #   3. runs PSScriptAnalyzer on src\ if it's installed (stops on errors),
 #   4. copies Release.Files into ..\Builds\<AppName> v<version>\ (made afresh),
 #   5. zips that folder as ..\Builds\<App-Name>-v<version>.zip for the GitHub release,
@@ -75,9 +77,24 @@ try {
             throw "$($ps1.Name) has $($parseErrors.Count) syntax error(s). First, on line $($parseErrors[0].Extent.StartLineNumber): $($parseErrors[0].Message)"
         }
     }
-    $text = [IO.File]::ReadAllText($script)
-    if ($text -notmatch "AppVersion\s*=\s*'(\d+\.\d{2})'") {
-        throw "Couldn't find `$script:AppVersion = '<major>.<two-digit minor>' (e.g. '1.00') in $($cfg.EntryScript)."
+    # The version is $script:AppVersion in EntryScript. A tool that keeps it in a file of its own sets
+    # build.json's optional VersionFile (e.g. "src\\<Name>-Version.ps1"); that file may name it
+    # $script:<anything>Version, such as $script:ToolkitVersion.
+    if ($cfg.VersionFile) {
+        $versionName    = [string]$cfg.VersionFile
+        $versionPath    = Join-Path $here $versionName
+        $versionPattern = "\`$script:\w*Version\s*=\s*'(\d+\.\d{2})'"
+        $versionHint    = '$script:...Version'
+        if (-not (Test-Path -LiteralPath $versionPath)) { throw "VersionFile not found: $versionPath" }
+    } else {
+        $versionName    = [string]$cfg.EntryScript
+        $versionPath    = $script
+        $versionPattern = "AppVersion\s*=\s*'(\d+\.\d{2})'"
+        $versionHint    = '$script:AppVersion'
+    }
+    $text = [IO.File]::ReadAllText($versionPath)
+    if ($text -notmatch $versionPattern) {
+        throw "Couldn't find $versionHint = '<major>.<two-digit minor>' (e.g. '1.00') in $versionName."
     }
     $version = $Matches[1]
     $logVersion = $null
