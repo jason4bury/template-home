@@ -30,7 +30,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string]$ScriptPath = (Join-Path $PSScriptRoot '{{APP_SLUG}}.ps1'),
+    [string]$ScriptPath,
     [string]$IconPath,
     [string[]]$ShortcutPath,
     [string]$AppId = '{{APP_ID}}',
@@ -39,6 +39,12 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Windows PowerShell 5.1 leaves $PSScriptRoot empty in param() defaults when a script is run with
+# powershell.exe -File (as the .cmd does), so the default script path is worked out here instead.
+if (-not $ScriptPath) {
+    $here = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Definition }
+    $ScriptPath = Join-Path $here '{{APP_SLUG}}.ps1'
+}
 $ScriptPath = (Resolve-Path -LiteralPath $ScriptPath).ProviderPath
 $folder     = Split-Path -Parent $ScriptPath
 if (-not $IconPath) {
