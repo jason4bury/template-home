@@ -4,14 +4,18 @@
   "Icon": "assets\\{{APP_SLUG}}.ico",
   "Side": "Home",
   "Description": "{{DESCRIPTION}}",
-  "EmbedAssets": ["assets\\{{APP_SLUG}}.ico", "assets\\{{APP_SLUG}}.png"],
-  "IncludeFiles": [],
-  "Ps2exe": {
-    "STA": true,
-    "NoConsole": true,
-    "NoOutput": true,
-    "NoError": true,
-    "NoConfigFile": true,
-    "RequireAdmin": false
+  "RequireAdmin": false,
+  "Release": {
+    "Files": {
+      "{{APP_SLUG}}.ps1": "src\\{{APP_SLUG}}.ps1",
+      "{{SHORTCUT_SCRIPT}}": "src\\{{SHORTCUT_SCRIPT}}",
+      "{{APP_NAME}}.cmd": "release\\{{APP_NAME}}.cmd",
+      "assets\\{{APP_SLUG}}.ico": "assets\\{{APP_SLUG}}.ico",
+      "assets\\{{APP_SLUG}}.png": "assets\\{{APP_SLUG}}.png",
+      "README.md": "README.md",
+      "CHANGELOG.md": "CHANGELOG.md",
+      "LICENSE": "LICENSE"
+    },
+    "Shortcut": "{{SHORTCUT_SCRIPT}}"
   }
 }

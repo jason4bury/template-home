@@ -2,6 +2,7 @@
 Builds/
 *.exe
 *.exe.old
+*.lnk
 
 # Settings and data live outside the repo (%APPDATA%\<App Name>, or <project>\Data for
 # private tools). These catch a stray copy if one is ever left in here.
@@ -14,7 +15,7 @@ secrets*.json
 *.key
 *.pfx
 
-# Logs, temp files and backups (Build-Exe.log, editor backups)
+# Logs, temp files and backups (Build.log, editor backups)
 *.log
 *.tmp
 *.bak

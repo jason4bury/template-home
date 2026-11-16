@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     {{APP_NAME}} - {{TAGLINE}}
 
@@ -8,7 +8,8 @@
     Project layout (house style):
         <project>\Source\               the git repo (this script is in Source\src\)
         <project>\Source\assets\        icon (.ico) and logo (.png)
-        <project>\Builds\               {{APP_NAME}} v<version>.exe, made by Build-Exe.cmd
+        <project>\Builds\               "{{APP_NAME}} v<version>\" release folders, their zips and
+                                        "{{APP_NAME}}.lnk", made by Build.cmd (no exe)
     Settings and data: {{DATA_LOCATION_PLAIN}}
 
 .NOTES
@@ -22,51 +23,49 @@
 
 $ErrorActionPreference = 'Stop'
 
-# The version lives here and in CHANGELOG.md; Build-Exe.cmd stops if they disagree.
-# Two-digit minor: 1.00, 1.01 ... 1.10. The exe is named "{{APP_NAME}} v<version>.exe".
+# The version lives here and in CHANGELOG.md; Build.cmd stops if they disagree.
+# Two-digit minor: 1.00, 1.01 ... 1.10. The release folder is "{{APP_NAME}} v<version>".
 $script:AppName     = '{{APP_NAME}}'
 $script:AppVersion  = '1.00'
 $script:Description = '{{DESCRIPTION}}'
 $script:Copyright   = 'Copyright (c) {{YEAR}} Jason Rhodes'
 $script:RepoUrl     = 'https://github.com/{{GITHUB_USER}}/{{APP_SLUG}}'
 $script:IsPrivate   = ${{PRIVATE}}   # private tools keep their data in <project>\Data, inside the vault
-
-#region BUNDLE-ASSETS
-# Build-Exe.cmd replaces this region with the files in build.json's EmbedAssets as base64,
-# so the exe needs no other files. Running from source, they are read from ..\assets\.
-$script:EmbeddedAssets = @{}
-#endregion BUNDLE-ASSETS
+$script:AppId       = '{{APP_ID}}'   # taskbar ID; the shortcut made by {{SHORTCUT_SCRIPT}} uses the same one
 
 # ---------------------------------------------------------------------------
-#  Script or exe? Where is everything?
+#  Where is everything? No exe: this script runs from Source\src\ (while
+#  developing) or from a release folder, Builds\{{APP_NAME}} v<version>\ (or
+#  wherever the release zip was unpacked), with assets\ beside it.
 # ---------------------------------------------------------------------------
-# PS2EXE exes have no $PSCommandPath, so the exe finds its folder from its own process.
-$script:ExePath = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
-$script:IsExe   = (-not $PSCommandPath) -or
-                  ([IO.Path]::GetFileNameWithoutExtension($script:ExePath) -notin 'powershell', 'pwsh', 'powershell_ise')
-
 # WPF needs an STA thread. Started any other way, restart in Windows PowerShell with -STA.
-if (-not $script:IsExe -and [Threading.Thread]::CurrentThread.GetApartmentState() -ne 'STA') {
+if ([Threading.Thread]::CurrentThread.GetApartmentState() -ne 'STA') {
     $ps = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
     Start-Process -FilePath $ps -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-STA', '-WindowStyle', 'Hidden', '-File', "`"$PSCommandPath`"")
     return
 }
 
-$script:ProgramDir = if ($script:IsExe) { Split-Path -Parent $script:ExePath } else { Split-Path -Parent $PSCommandPath }
-$script:AssetsDir  = Join-Path (Split-Path -Parent $script:ProgramDir) 'assets'
+# One taskbar button with the tool's own icon (not PowerShell's), and pinning it pins the tool.
+try {
+    Add-Type -Namespace 'HomeTool' -Name 'Shell' -MemberDefinition '[DllImport("shell32.dll", CharSet = CharSet.Unicode)] public static extern int SetCurrentProcessExplicitAppUserModelID(string appId);'
+    [void][HomeTool.Shell]::SetCurrentProcessExplicitAppUserModelID($script:AppId)
+} catch { Write-Verbose "No taskbar ID: $($_.Exception.Message)" }
+
+$script:ProgramDir = Split-Path -Parent $PSCommandPath
+$script:AssetsDir  = @((Join-Path $script:ProgramDir 'assets'), (Join-Path (Split-Path -Parent $script:ProgramDir) 'assets')) |
+    Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+if (-not $script:AssetsDir) { $script:AssetsDir = Join-Path $script:ProgramDir 'assets' }
 
 function Get-DataDir {
     <# Public tools: %APPDATA%\<App Name>. Private tools: <project>\Data, beside Source\ and
        Builds\, so nothing is written to the unencrypted drive. Never inside Source\ (keeps
-       personal data out of git) or Builds\ (rebuilding must not touch it). #>
+       personal data out of git) or a release folder (each version has its own, so data kept
+       there would be left behind by the next version). #>
     if (-not $script:IsPrivate) { return (Join-Path $env:APPDATA $script:AppName) }
     $up = Split-Path -Parent $script:ProgramDir
-    if ($script:IsExe) {
-        if ((Split-Path -Leaf $script:ProgramDir) -eq 'Builds') { return (Join-Path $up 'Data') }
-        return (Join-Path $script:ProgramDir 'Data')
-    }
-    if ((Split-Path -Leaf $up) -eq 'Source') { return (Join-Path (Split-Path -Parent $up) 'Data') }
-    return (Join-Path $up 'Data')
+    # Source\src\<script> or Builds\<App> v<x.yy>\<script>: <project> is two levels up.
+    if (@('Source', 'Builds') -contains (Split-Path -Leaf $up)) { return (Join-Path (Split-Path -Parent $up) 'Data') }
+    return (Join-Path $script:ProgramDir 'Data')   # an unpacked release zip somewhere else
 }
 $script:DataDir      = Get-DataDir
 $script:SettingsPath = Join-Path $script:DataDir 'settings.json'
@@ -85,9 +84,8 @@ function Write-AppLog {
 }
 
 function Get-AssetBytes {
-    <# An asset by file name: from the exe when it was embedded, else from Source\assets\. #>
+    <# An asset by file name, from assets\ (beside the script in a release, Source\assets\ in the repo). #>
     param([string]$Name)
-    if ($script:EmbeddedAssets.ContainsKey($Name)) { return [Convert]::FromBase64String($script:EmbeddedAssets[$Name]) }
     $path = Join-Path $script:AssetsDir $Name
     if (Test-Path -LiteralPath $path) { return [IO.File]::ReadAllBytes($path) }
     return $null
@@ -202,7 +200,7 @@ try {
     $window.FindName('TxtHello').Text = "$script:AppName v$script:AppVersion`n`nReplace this window with your tool."
     $window.FindName('BtnAbout').Add_Click({ Show-About -Owner $window })
     $window.FindName('BtnClose').Add_Click({ $window.Close() })
-    Write-AppLog "Started v$script:AppVersion ($(if ($script:IsExe) { 'exe' } else { 'script' }))"
+    Write-AppLog "Started v$script:AppVersion from $script:ProgramDir"
     [void]$window.ShowDialog()
 } catch {
     Write-AppLog "Error: $($_.Exception.Message)"

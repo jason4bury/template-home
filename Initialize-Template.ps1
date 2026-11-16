@@ -4,8 +4,9 @@
 
 .DESCRIPTION
     Fills in the files in starter\ (README, CHANGELOG, LICENSE, build.json, launcher.json,
-    Build-Exe.cmd, the starter script and its About box) with the tool's name and
-    descriptions, and draws a placeholder icon.
+    Build.cmd, the starter script and its About box, the shortcut maker and the release's
+    "<App Name>.cmd") with the tool's name and descriptions, and draws a placeholder icon.
+    Home tools have no exe: Build.cmd makes a script release folder and a shortcut.
 
     Two ways to use it:
 
@@ -25,13 +26,13 @@
 
 .PARAMETER AppName
     Display name with spaces, e.g. "Media Hub". Used for the window title, About box,
-    %APPDATA% folder and the exe name ("Media Hub v1.00.exe").
+    %APPDATA% folder, shortcut and release folder ("Builds\Media Hub v1.00\").
 
 .PARAMETER Tagline
     One line for the README under the title, e.g. "Browse and play everything on your NAS."
 
 .PARAMETER Description
-    The GitHub About-box description and exe description, in the formula
+    The GitHub About-box description and the shortcut's comment, in the formula
     "<Language>/<UI> tool for <what it does>", e.g. "PowerShell/WPF tool for managing winget updates".
 
 .PARAMETER Slug
@@ -146,11 +147,12 @@ try {
     Write-Host '  N E W   H O M E   T O O L   -   from template-home' -ForegroundColor Cyan
 
     # ---- What the tool is called and what it does ----
-    if (-not $AppName)     { $AppName     = Read-Value 'Display name, with spaces (used for the exe: "<name> v1.00.exe")' 'Media Hub' }
+    if (-not $AppName)     { $AppName     = Read-Value 'Display name, with spaces (used for the shortcut and release folder: "<name> v1.00")' 'Media Hub' }
     if (-not $Tagline)     { $Tagline     = Read-Value 'One-line tagline for the README' 'Browse and play everything on your NAS.' }
     if (-not $Description) { $Description = Read-Value 'GitHub About-box description: "<Language>/<UI> tool for <what it does>"' 'PowerShell/WPF tool for managing winget updates' }
     if (-not $AppName -or -not $Tagline -or -not $Description) { throw 'A name, tagline and description are all needed.' }
     if ($AppName -notmatch '^[A-Za-z0-9][A-Za-z0-9 ]*$') { throw "Use letters, digits and spaces only in the name ('$AppName')." }
+    if ($Description.Contains("'")) { throw "Leave apostrophes out of the description (it goes inside quotes in the scripts)." }
     if ($Description -notmatch '^\S+/\S+ tool for ') { Write-Warning "The About-box formula is '<Language>/<UI> tool for <what it does>' (e.g. 'PowerShell/WPF tool for ...')." }
     $Description = $Description.TrimEnd('.')
     if (-not $Slug) { $Slug = (($AppName -split '\s+' | Where-Object { $_ } | ForEach-Object { $_.Substring(0, 1).ToUpper() + $_.Substring(1) }) -join '-') }
@@ -173,6 +175,7 @@ try {
     }
 
     $today = (Get-Date).ToString('yyyy-MM-dd')
+    $shortcutScript = "New-$($Slug -replace '-', '')Shortcut.ps1"
     $year  = (Get-Date).Year
     $dataMd    = if ($Private) { "everything $AppName stores is in the project's ``Data\`` folder, beside ``Source\`` and ``Builds\``, inside the encrypted Private folder. Nothing is written to ``%APPDATA%``, and it is never inside the repo." }
                  else          { "everything $AppName stores is in ``%APPDATA%\$AppName\``. It stays on your PC and is never inside the repo or the ``Builds\`` folder, so rebuilding or updating can't touch it." }
@@ -190,13 +193,15 @@ try {
         '{{DATA_LOCATION}}'       = $dataMd
         '{{DATA_LOCATION_PLAIN}}' = $dataPlain
         '{{PRIVATE}}'             = $(if ($Private) { 'true' } else { 'false' })
+        '{{APP_ID}}'              = "$GitHubUser.$Slug"
+        '{{SHORTCUT_SCRIPT}}'     = $shortcutScript
     }
 
     # ---- Copy and fill in ----
     Write-Host ''
     Write-Host "Making $AppName in $projectDir" -ForegroundColor White
     if (-not (Test-Path -LiteralPath $sourceDir)) { New-Item -ItemType Directory -Path $sourceDir -Force | Out-Null }
-    $renames = @{ 'Start App.cmd' = "Start $AppName.cmd"; 'App.ps1' = "$Slug.ps1" }
+    $renames = @{ 'Start App.cmd' = "Start $AppName.cmd"; 'App.ps1' = "$Slug.ps1"; 'App.cmd' = "$AppName.cmd"; 'New-AppShortcut.ps1' = $shortcutScript }
     $textExt = '.md', '.json', '.ps1', '.psd1', '.cmd', '.txt', '', '.gitignore', '.gitattributes'
     $files = Get-ChildItem -LiteralPath $starterDir -Recurse -File -Force
     foreach ($f in $files) {
@@ -267,7 +272,7 @@ try {
     Write-Host "  1. Write the tool in src\$Slug.ps1 (keep `$script:AppVersion = '1.00' in step with CHANGELOG.md)."
     Write-Host '  2. Replace the placeholder icon in assets\, fill in the README sections and add a screenshot.'
     Write-Host '  3. Pre-upload review: code, GUI/graphics, improvements.'
-    Write-Host "  4. Double-click Build-Exe.cmd: it makes ..\Builds\$AppName v1.00.exe."
+    Write-Host "  4. Double-click Build.cmd: it makes ..\Builds\$AppName v1.00\, its zip and $AppName.lnk."
     $vis = if ($Private) { '--private' } else { '--public' }
     if ($InPlace) { Write-Host '  5. Commit and push (the GitHub repo already exists), then set its About description and topics.' }
     else { Write-Host "  5. Commit, then: gh repo create $GitHubUser/$Slug $vis --source `"$sourceDir`" --description `"$Description`" --push" }

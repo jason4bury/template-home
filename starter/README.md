@@ -35,25 +35,24 @@
 
 ## 📦 Installation
 
-**Exe:** download `{{APP_NAME}} v1.00.exe` from the [latest release](../../releases/latest) and run it. Nothing else to install.
+1. Download `{{APP_SLUG}}-v1.00.zip` from the [latest release](../../releases/latest) and unzip it wherever you like to keep it.
+2. Double-click **{{APP_NAME}}.cmd** in the unzipped folder. It makes a **{{APP_NAME}}** shortcut there and in the Start menu, and starts the tool. From then on, use the shortcut, the Start menu or a pinned taskbar button.
 
-**Script:** clone the repo, or download it as a zip. If you download a zip, right-click it, choose **Properties** and tick **Unblock** *before* unzipping, so Windows doesn't block the scripts. Then double-click **Start {{APP_NAME}}.cmd**.
+Nothing is installed and no Windows settings are changed. The shortcut runs the script with PowerShell's execution policy bypassed for that run only.
 
-### Build the exe
+**From the repo:** clone it and double-click **Start {{APP_NAME}}.cmd**.
 
-Double-click **Build-Exe.cmd** in the repo folder. It reads `build.json`, checks that `$script:AppVersion` in the script matches the newest `CHANGELOG.md` entry, runs PSScriptAnalyzer if it's installed, and compiles the exe with [PS2EXE](https://github.com/MScholtes/PS2EXE) (installed for your user account the first time). The exe is saved to the project's `Builds\` folder, outside the repo, as `{{APP_NAME}} v<version>.exe`. Older builds stay alongside.
+### Why no exe
 
-Once the standard build script is in place, it replaces `Build-Exe.cmd`:
+Home tools used to ship as PS2EXE exes, and antivirus programs (ESET among them) kept flagging those exes as generic trojans by mistake. A plain script and a shortcut give the same one-click start without the false alarms, and you can read exactly what runs.
 
-```powershell
-E:\Created\_shared\Build-Tool.ps1 -Project "E:\Created\Home\{{APP_SLUG}}"
-```
+### Build a release
 
-Some antivirus programs flag PS2EXE executables by mistake. If the exe disappears straight after building, restore it from quarantine and add an exclusion for the `Builds` folder.
+Double-click **Build.cmd** in the repo folder. It reads `build.json`, checks every script for syntax errors and that `$script:AppVersion` matches the newest `CHANGELOG.md` entry, runs PSScriptAnalyzer if it's installed, copies the release files into `..\Builds\{{APP_NAME}} v<version>\`, zips that folder for the GitHub release, refreshes `..\Builds\{{APP_NAME}}.lnk` (what the Home Launcher starts) and scans the result with ESET's command-line scanner if it's installed.
 
 ## 🚀 Usage
 
-1. Start {{APP_NAME}} (the exe, or **Start {{APP_NAME}}.cmd**).
+1. Start {{APP_NAME}} (the shortcut, the Start menu, or **{{APP_NAME}}.cmd**).
 2. ...
 
 ## ⚙️ Configuration

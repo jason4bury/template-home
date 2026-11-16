@@ -6,20 +6,21 @@
 
 The starter for every new Home tool: house-style README, changelog, licence, build and launcher files, ready to fill in.
 
-![Version](https://img.shields.io/badge/version-v1.00-blue) ![Platform](https://img.shields.io/badge/platform-Windows-0078D6) ![PowerShell](https://img.shields.io/badge/PowerShell-5.1-5391FE) ![Licence](https://img.shields.io/badge/licence-MIT-green) ![Last commit](https://img.shields.io/github/last-commit/jason4bury/template-home)
+![Version](https://img.shields.io/badge/version-v1.01-blue) ![Platform](https://img.shields.io/badge/platform-Windows-0078D6) ![PowerShell](https://img.shields.io/badge/PowerShell-5.1-5391FE) ![Licence](https://img.shields.io/badge/licence-MIT-green) ![Last commit](https://img.shields.io/github/last-commit/jason4bury/template-home)
 
 ## ✨ Features
 
 One command turns this template into a new tool's project folder, laid out and written the way every Home repo is:
 
-- **Folder layout**: `<Name>\Source\` (the git repo) and `<Name>\Builds\` (exes, never committed), under `E:\Created\Home\` or `Home\Private\`.
+- **Folder layout**: `<Name>\Source\` (the git repo) and `<Name>\Builds\` (release folders and zips, never committed), under `E:\Created\Home\` or `Home\Private\`.
 - **README** with the house section order, an emoji at the start of every H2 and the badge row (version, platform, language, licence, last commit). Private tools get the row without the Last-commit badge, which can't read a private repo.
 - **CHANGELOG.md** in Keep a Changelog format, starting at `[1.00]` with today's date.
 - **MIT LICENSE**, `Copyright (c) <year> Jason Rhodes`.
-- **.gitignore and .gitattributes**: exes, `Builds\`, `Data\`, `config.local.json`, `.env`, logs; CRLF for `.ps1`, `.psd1` and `.cmd`. `config.example.json` shows the shape of the gitignored config.
-- **build.json** for the standard build script, and **Build-Exe.cmd**, which builds from `build.json` alone until `E:\Created\_shared\Build-Tool.ps1` exists: it checks the version against the CHANGELOG, runs PSScriptAnalyzer (with the repo's `PSScriptAnalyzerSettings.psd1`), embeds the icon and logo, and saves `..\Builds\<App Name> v1.00.exe`.
+- **.gitignore and .gitattributes**: exes, shortcuts, `Builds\`, `Data\`, `config.local.json`, `.env`, logs; CRLF for `.ps1`, `.psd1` and `.cmd`. `config.example.json` shows the shape of the gitignored config.
+- **No exe.** PS2EXE exes kept being flagged by antivirus as false positives, so a Home tool ships as its script. **build.json** lists the release files, and **Build.cmd** checks the scripts' syntax and the version against the CHANGELOG, runs PSScriptAnalyzer (with the repo's `PSScriptAnalyzerSettings.psd1`), copies the release into `..\Builds\<App Name> v1.00\`, zips it for GitHub, refreshes `..\Builds\<App Name>.lnk` for the Home Launcher and scans it all with ESET's command-line scanner if it's there.
+- **`<App Name>.cmd` and `New-<Name>Shortcut.ps1`** in every release: double-clicking the .cmd makes a shortcut beside it and in the Start menu that starts the tool with no console window, its own icon and its own taskbar button.
 - **launcher.json** with the tool's category, so the Home Launcher files it in the right group.
-- **Starter script** `src\<Name>.ps1`: version and name in one place, settings in `%APPDATA%\<App Name>` (or `<project>\Data` for private tools), assets that work from the script and from the exe, a log, and the **About box** (logo, name, version, About-box description, data folder, repo link, copyright and MIT licence). The window is a placeholder: house style sets what the About box says, never how the app looks.
+- **Starter script** `src\<Name>.ps1`: version and name in one place, settings in `%APPDATA%\<App Name>` (or `<project>\Data` for private tools), assets that work from the repo and from a release folder, its own taskbar ID, a log, and the **About box** (logo, name, version, About-box description, data folder, repo link, copyright and MIT licence). The window is a placeholder: house style sets what the About box says, never how the app looks.
 - **Issue templates** for bug reports and feature requests, and a placeholder icon drawn from the tool's initials.
 
 ## 📋 Requirements
@@ -50,9 +51,9 @@ That makes `E:\Created\Home\Media-Hub\Source\` (a new git repo, nothing committe
 
 | Parameter | What it's for |
 | --- | --- |
-| `-AppName` | Display name with spaces. Window title, About box, `%APPDATA%` folder and exe name (`Media Hub v1.00.exe`). |
+| `-AppName` | Display name with spaces. Window title, About box, `%APPDATA%` folder, shortcut and release folder (`Media Hub v1.00`). |
 | `-Tagline` | The README's one line under the title. The launcher shows it too. |
-| `-Description` | About-box formula: `<Language>/<UI> tool for <what it does>`. Also the exe's description. |
+| `-Description` | About-box formula: `<Language>/<UI> tool for <what it does>`. Also the shortcut's comment. No apostrophes. |
 | `-Slug` | Folder, repo and script name. Defaults to the name in Title-Case-With-Hyphens (`Media-Hub`). |
 | `-Category` | Launcher group, e.g. `Films and TV`, `Music`, `Windows`. Default `Tools`. |
 | `-Private` | `Home\Private\`, data in `<project>\Data`, no Last-commit badge, `gh repo create --private`. |
@@ -68,7 +69,7 @@ That makes `E:\Created\Home\Media-Hub\Source\` (a new git repo, nothing committe
 1. Write the tool in `src\<Name>.ps1`. Keep `$script:AppVersion` in step with the newest CHANGELOG entry.
 2. Replace the placeholder icon, fill in the README sections (leave out any that don't apply; never reorder them) and add a screenshot.
 3. Run the pre-upload review: code, GUI and graphics, improvements.
-4. Double-click **Build-Exe.cmd**.
+4. Double-click **Build.cmd**.
 5. Commit, then publish with the command the script prints (`gh repo create ... --source ... --push`), and set the About-box description and topics.
 
 ## ⚙️ Configuration
@@ -86,8 +87,10 @@ Everything that changes per tool is a placeholder in `starter\`:
 | `{{YEAR}}`, `{{DATE}}` | today |
 | `{{DATA_LOCATION}}` | where settings live, public or private |
 | `{{PRIVATE}}` | `true` or `false` in the starter script |
+| `{{APP_ID}}` | the taskbar ID, `jason4bury.<Name>` |
+| `{{SHORTCUT_SCRIPT}}` | `New-<Name without hyphens>Shortcut.ps1` |
 
-`starter\Start App.cmd` and `starter\src\App.ps1` are renamed to `Start <App Name>.cmd` and `src\<Name>.ps1`.
+`starter\Start App.cmd`, `starter\src\App.ps1`, `starter\src\New-AppShortcut.ps1` and `starter\release\App.cmd` are renamed to `Start <App Name>.cmd`, `src\<Name>.ps1`, `src\New-<Name>Shortcut.ps1` and `release\<App Name>.cmd`.
 
 ## 📝 Changelog
 
