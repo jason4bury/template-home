@@ -13,8 +13,9 @@
     1. New project on disk (the usual way). Run from this template folder, or double-click
        "New Home Tool.cmd":
            .\Initialize-Template.ps1 -AppName "Media Hub" -Tagline "..." -Description "PowerShell/WPF tool for ..."
-       It makes E:\Created\Home\Media-Hub\Source\ (the new repo, with git init) and
-       E:\Created\Home\Media-Hub\Builds\. Add -Private for E:\Created\Home\Private\<Name>\.
+       It makes <Home>\Media-Hub\Source\ (the new repo, with git init) and
+       <Home>\Media-Hub\Builds\. Add -Private for <Home>\Private\<Name>\. <Home> is the folder
+       that holds _templates (or -HomeRoot).
        The template folder itself isn't changed.
 
     2. In place, after "Use this template" on GitHub. Clone the new repo into
@@ -59,8 +60,9 @@ param(
     [string]$Slug,
     [string]$Category = 'Tools',
     [switch]$Private,
-    [string]$HomeRoot = 'E:\Created\Home',
-    [string]$GitHubUser = 'jason4bury',
+    [string]$HomeRoot,
+    [string]$GitHubUser,
+    [string]$Author,
     [switch]$InPlace,
     [switch]$NoGit,
     [switch]$NoPause
@@ -69,6 +71,20 @@ param(
 $ErrorActionPreference = 'Stop'
 $templateDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $starterDir  = Join-Path $templateDir 'starter'
+
+# Where new tools go: the folder that holds _templates (this template lives in <Home>\_templates\template-home).
+if (-not $HomeRoot) {
+    $parent = Split-Path -Parent $templateDir
+    $HomeRoot = if ((Split-Path -Leaf $parent) -eq '_templates') { Split-Path -Parent $parent } else { (Get-Location).Path }
+}
+# The GitHub account: the owner of this template's own repo (your copy of it), else git's github.user.
+if (-not $GitHubUser) {
+    try { $origin = [string](& git -C $templateDir remote get-url origin 2>$null) } catch { $origin = '' }
+    if ($origin -match 'github\.com[:/]([^/]+)/') { $GitHubUser = $Matches[1] }
+    if (-not $GitHubUser) { try { $GitHubUser = [string](& git config --global github.user 2>$null) } catch { $GitHubUser = '' } }
+}
+# The author for the LICENSE, README and script headers: git's user.name.
+if (-not $Author) { try { $Author = [string](& git config --global user.name 2>$null) } catch { $Author = '' } }
 
 function Read-Value([string]$Prompt, [string]$Example) {
     Write-Host ''
@@ -150,6 +166,8 @@ try {
     if (-not $AppName)     { $AppName     = Read-Value 'Display name, with spaces (used for the shortcut and release folder: "<name> v1.00")' 'Media Hub' }
     if (-not $Tagline)     { $Tagline     = Read-Value 'One-line tagline for the README' 'Browse and play everything on your NAS.' }
     if (-not $Description) { $Description = Read-Value 'GitHub About-box description: "<Language>/<UI> tool for <what it does>"' 'PowerShell/WPF tool for managing winget updates' }
+    if (-not $GitHubUser)  { $GitHubUser  = Read-Value 'Your GitHub user name (for the repo links)' 'octocat' }
+    if (-not $Author)      { $Author      = Read-Value 'Your name, for the LICENSE and About box' 'Sam Smith' }
     if (-not $AppName -or -not $Tagline -or -not $Description) { throw 'A name, tagline and description are all needed.' }
     if ($AppName -notmatch '^[A-Za-z0-9][A-Za-z0-9 ]*$') { throw "Use letters, digits and spaces only in the name ('$AppName')." }
     if ($Description.Contains("'")) { throw "Leave apostrophes out of the description (it goes inside quotes in the scripts)." }
@@ -188,6 +206,7 @@ try {
         '{{DESCRIPTION}}'         = $Description
         '{{CATEGORY}}'            = $Category
         '{{GITHUB_USER}}'         = $GitHubUser
+        '{{AUTHOR}}'              = $Author
         '{{YEAR}}'                = "$year"
         '{{DATE}}'                = $today
         '{{DATA_LOCATION}}'       = $dataMd

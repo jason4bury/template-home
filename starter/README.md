@@ -67,6 +67,6 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 ## 📄 Licence
 
-[MIT](LICENSE). Copyright (c) {{YEAR}} Jason Rhodes.
+[MIT](LICENSE). Copyright (c) {{YEAR}} {{AUTHOR}}.
 
-Created by Jason Rhodes, built with Claude (Anthropic).
+Created by {{AUTHOR}}, built with Claude (Anthropic).

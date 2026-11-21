@@ -25,8 +25,8 @@
 .EXAMPLE
     .\{{SHORTCUT_SCRIPT}} -Launch
 .NOTES
-    Author:    Jason Rhodes
-    Copyright: (c) {{YEAR}} Jason Rhodes - MIT licence (see LICENSE)
+    Author:    {{AUTHOR}}
+    Copyright: (c) {{YEAR}} {{AUTHOR}} - MIT licence (see LICENSE)
 #>
 [CmdletBinding()]
 param(

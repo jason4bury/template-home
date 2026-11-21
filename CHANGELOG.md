@@ -6,12 +6,21 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.03] - 2026-11-21
+
+### Changed
+- **Works for anyone.** New tools go in the folder that holds `_templates` (or `-HomeRoot`), not a
+  fixed drive and folder.
+- **Your own names.** The GitHub user name comes from your copy of this template's repo (or git's
+  `github.user`, or it asks), and the author's name for the LICENSE, README and script headers from
+  git's `user.name` (or it asks). New `-Author` and a `{{AUTHOR}}` placeholder in the starter.
+
 ## [1.02] - 2026-11-16
 
 ### Added
 - `starter\Build.cmd`: optional `VersionFile` in `build.json`, for a tool that keeps its version
   in a file of its own. Build.cmd then reads `$script:<Name>Version` (e.g. `$script:ToolkitVersion`)
-  from that file. Same as After Hours Movie Toolkit v1.02 and Stash Toolkit v1.02. Tools without
+  from that file. Same as the other Home tools. Tools without
   `VersionFile` build exactly as before.
 
 ### Fixed

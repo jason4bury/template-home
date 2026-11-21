@@ -13,8 +13,8 @@
     Settings and data: {{DATA_LOCATION_PLAIN}}
 
 .NOTES
-    Author:    Jason Rhodes
-    Copyright: (c) {{YEAR}} Jason Rhodes - MIT licence (see LICENSE)
+    Author:    {{AUTHOR}}
+    Copyright: (c) {{YEAR}} {{AUTHOR}} - MIT licence (see LICENSE)
     Version:   see $script:AppVersion below and CHANGELOG.md
     Runs in Windows PowerShell 5.1 on an STA thread (WPF needs it).
 #>
@@ -28,7 +28,7 @@ $ErrorActionPreference = 'Stop'
 $script:AppName     = '{{APP_NAME}}'
 $script:AppVersion  = '1.00'
 $script:Description = '{{DESCRIPTION}}'
-$script:Copyright   = 'Copyright (c) {{YEAR}} Jason Rhodes'
+$script:Copyright   = 'Copyright (c) {{YEAR}} {{AUTHOR}}'
 $script:RepoUrl     = 'https://github.com/{{GITHUB_USER}}/{{APP_SLUG}}'
 $script:IsPrivate   = ${{PRIVATE}}   # private tools keep their data in <project>\Data, inside the vault
 $script:AppId       = '{{APP_ID}}'   # taskbar ID; the shortcut made by {{SHORTCUT_SCRIPT}} uses the same one
