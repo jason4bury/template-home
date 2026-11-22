@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.04] - 2026-11-22
+
+### Changed
+- **Solid placeholder icon.** The starter icon fills more of the square (smaller rounded corners),
+  and its 16 to 64 px sizes are plain bitmaps instead of PNG, so it isn't faint or blank on the
+  taskbar. Replace it with the tool's own icon, keeping that solid too.
+
 ## [1.03] - 2026-11-21
 
 ### Changed

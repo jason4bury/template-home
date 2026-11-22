@@ -109,8 +109,11 @@ function Write-TextFile([string]$Path, [string]$Text) {
 }
 
 function New-PlaceholderIcon {
-    <# A plain rounded square with the tool's initials, as assets\<Slug>.png (256 px) and
-       assets\<Slug>.ico (16-256 px). Only a stand-in: replace both with the tool's own icon. #>
+    <# A solid rounded square with the tool's initials, as assets\<Slug>.png (256 px) and
+       assets\<Slug>.ico (16-256 px). Only a stand-in: replace both with the tool's own icon,
+       keeping it solid (an opaque background filling the square), so it isn't faint on the taskbar.
+       Sizes up to 64 px are stored as plain bitmaps, not PNG: Windows' taskbar can show small PNG
+       entries blank or washed out. #>
     param([string]$Name, [string]$AssetsDir, [string]$FileBase)
     Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
     $words = @($Name -split '[\s\-_]+' | Where-Object { $_ })
@@ -123,7 +126,7 @@ function New-PlaceholderIcon {
         param([int]$Size)
         $dv = New-Object Windows.Media.DrawingVisual
         $dc = $dv.RenderOpen()
-        $r = $Size * 0.18
+        $r = $Size * 0.12
         $dc.DrawRoundedRectangle($fill, $null, (New-Object Windows.Rect 0, 0, $Size, $Size), $r, $r)
         $tf = New-Object Windows.Media.Typeface (New-Object Windows.Media.FontFamily 'Segoe UI'), ([Windows.FontStyles]::Normal), ([Windows.FontWeights]::SemiBold), ([Windows.FontStretches]::Normal)
         $em = $Size * $(if ($initials.Length -gt 1) { 0.42 } else { 0.55 })
@@ -132,6 +135,21 @@ function New-PlaceholderIcon {
         $dc.Close()
         $bmp = New-Object Windows.Media.Imaging.RenderTargetBitmap $Size, $Size, 96, 96, ([Windows.Media.PixelFormats]::Pbgra32)
         $bmp.Render($dv)
+        if ($Size -le 64) {
+            # A plain 32-bit bitmap (BITMAPINFOHEADER, rows bottom-up, then an empty AND mask).
+            $stride = $Size * 4
+            $px = New-Object byte[] ($stride * $Size)
+            $bmp.CopyPixels($px, $stride, 0)
+            $mask = [int]([math]::Ceiling($Size / 32.0) * 4) * $Size
+            $ms = New-Object IO.MemoryStream; $w = New-Object IO.BinaryWriter $ms
+            $w.Write([uint32]40); $w.Write([int32]$Size); $w.Write([int32]($Size * 2)); $w.Write([uint16]1); $w.Write([uint16]32)
+            $w.Write([uint32]0); $w.Write([uint32]($px.Length + $mask)); $w.Write([int32]0); $w.Write([int32]0); $w.Write([uint32]0); $w.Write([uint32]0)
+            for ($y = $Size - 1; $y -ge 0; $y--) { $w.Write($px, $y * $stride, $stride) }
+            $w.Write((New-Object byte[] $mask))
+            $w.Flush(); $b = $ms.ToArray(); $ms.Dispose()
+            , $b
+            return
+        }
         $enc = New-Object Windows.Media.Imaging.PngBitmapEncoder
         [void]$enc.Frames.Add([Windows.Media.Imaging.BitmapFrame]::Create($bmp))
         $ms = New-Object IO.MemoryStream; $enc.Save($ms); $b = $ms.ToArray(); $ms.Dispose()
